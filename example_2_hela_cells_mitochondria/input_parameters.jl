@@ -1,7 +1,7 @@
 const working_directory = string(pwd(), "/") 
 
 # Optical Parameters
-const psf_type = "airy_disk" 
+const psf_type = "gaussian" 
 const numerical_aperture::Float64 = 1.3
 const magnification::Float64 = 100.0
 const light_wavelength::Float64 = 0.660# In micrometers
