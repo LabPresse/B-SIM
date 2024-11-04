@@ -41,9 +41,8 @@ These two ways are equivalent. Both of them create a new Julia environment the f
 
 Complex programs like B-SIM require scripts for better organization instead of typing functions into the REPL for every run. B-SIM is currently organized into multiple scripts. The main script "main.jl" calls all the functions performing SIM reconstruction and the input parameter script "input_parameters.jl" defines all the input parameters needed to perform reconstruction (see the image below).
 
+![image](https://github.com/user-attachments/assets/ea85c21c-a4fa-4a5d-b782-f7bfa635a436)
 
-
-![image](https://github.com/ayushsaurabh/B-SIM/assets/87823118/83d0c6ca-4863-49e1-9e92-8d3122489433)
 
 
 
@@ -70,8 +69,8 @@ B-SIM code can now be executed by simply importing the "main.jl" in the REPL as 
 
 ```include("main.jl")```
 
+![image](https://github.com/user-attachments/assets/88c41cdf-9e26-4d40-b875-b34fd057522f)
 
-![image](https://github.com/ayushsaurabh/B-SIM/assets/87823118/3c2056cf-7ee2-4d47-bc4d-d428e9c5a095)
 
 
 
@@ -83,7 +82,8 @@ On a linux or macOS machine, the "main.jl" script can be run directly from the t
 
 Now, B-SIM is a fully parallelized code and starts execution by first adding the required number of processors. Next, all the input tif files are imported and divided according to the parallelization grid (2x2 by default). The sub-images are then sent to each processor. All the functions involved in SIM reconstruction are compiled next. Finally, the sampler starts and with each iteration outputs the log(posterior) values and a temperature parameter that users are not required to modify (see picture below). At the end of each iteration, sub-images are sent back to the master processor and combined into one image.
 
-![image](https://github.com/ayushsaurabh/B-SIM/assets/87823118/93570832-ead3-4d3a-a16d-6d52afc0bbea)
+![image](https://github.com/user-attachments/assets/2fc72885-2195-4f2a-b2fd-478310c49d06)
+
 
 
 
@@ -95,9 +95,10 @@ Depending on the chosen plotting frequency in the "input_parameters.jl" file, th
 Finally, as samples are collected, B-SIM saves intermediate samples and analysis data onto the hard drive in the TIFF format with file names that look like "mean_inferred_object_2.0.tif" and "inferred_object_2.0.tif". The save frequency can be modified by changing a few inference parameters in the "input_parameters.jl" file: "initial_burn_in_period" which is set based on when the sampler converges for the **first time**; simulated annealing is restarted at regular intervals set by the parameter "annealing_frequency"; simulated annealing starts with temperature set by "annealing_starting_temperature" and then the temperature decays exponentially with time constant set by "annealing_time_constant"; samples to be averaged are collected after the "annealing_burn_in_period" during which the sampler converges after increasing the temperature; and lastly, samples are collected at the "averaging_frequency" after the annealing burn-in period. Use of simulated annealing here helps uncorrelate the chain of samples by smoothing and widening the posterior at intermediate iterations by raising temperature, allowing the sampler to easily move far away from the current sample. Based on these parameters, the samples are saved whenever the following conditions are satisfied: 
 
 ```
-if (draw >= initial_burn_in_period) &&
-   (draw % annealing_frequency >= annealing_burn_in_period) &&
-      (draw % averaging_frequency == 0)
+if (draw == chain_burn_in_period) || ((draw > chain_burn_in_period) &&
+   ((draw - chain_burn_in_period) % annealing_frequency > annealing_burn_in_period ||
+   (draw - chain_burn_in_period) % annealing_frequency == 0) &&
+   ((draw - chain_burn_in_period) % averaging_frequency == 0))
 
 ```
 where % indicates remainder upon division. For instance, using the default settings in the "input_parameters.jl" file shown above, the samples will be saved at iterations:
@@ -106,6 +107,8 @@ where % indicates remainder upon division. For instance, using the default setti
 10020, 10040, 10060, ..., 10080,...
 
 ```
+
+![image](https://github.com/user-attachments/assets/8c85c2a7-9827-427d-bebd-7d09a60c5007)
 
 
 ## A Brief Description of the Sampler
